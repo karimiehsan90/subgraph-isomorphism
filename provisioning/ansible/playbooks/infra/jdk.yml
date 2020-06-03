@@ -1,0 +1,5 @@
+---
+- name: Install jdk
+  hosts: project_machines
+  roles:
+    - jdk
