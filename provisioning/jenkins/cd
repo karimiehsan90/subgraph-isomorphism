@@ -1,0 +1,18 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Deploy') {
+            steps {
+                echo 'deploy'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "post"
+            cleanWs()
+        }
+    }
+}
