@@ -1,0 +1,5 @@
+---
+- name: Install /etc/hosts
+  hosts: project_machines
+  roles:
+    - etc-hosts
