@@ -2,3 +2,5 @@
 - import_playbook: infra/etc-hosts.yml
 
 - import_playbook: infra/jdk.yml
+
+- import_playbook: infra/hadoop.yml
