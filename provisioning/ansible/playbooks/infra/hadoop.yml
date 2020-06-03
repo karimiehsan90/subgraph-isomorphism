@@ -1,0 +1,5 @@
+---
+- name: Install hadoop
+  hosts: hadoop
+  roles:
+    - hadoop

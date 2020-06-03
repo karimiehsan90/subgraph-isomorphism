@@ -1,0 +1,12 @@
+---
+hadoop:
+  vars:
+    hadoop_replication: 1
+
+hadoop_masters:
+  children:
+    masters:
+
+hadoop_slaves:
+  children:
+    slaves:
