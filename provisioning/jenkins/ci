@@ -4,13 +4,19 @@ pipeline {
     stages {
         stage('Test') {
             steps {
-                echo 'test'
+                sh './subgraph-isomorphism.sh test'
             }
         }
 
         stage('Build') {
             steps {
                 sh './subgraph-isomorphism.sh build'
+            }
+        }
+
+        stage('Deploy MapReduce') {
+            steps {
+                sh './subgraph-isomorphism.sh deploy'
             }
         }
     }
