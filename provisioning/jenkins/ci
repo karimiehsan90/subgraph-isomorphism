@@ -10,14 +10,14 @@ pipeline {
 
         stage('Build') {
             steps {
-                echo 'build'
+                sh './subgraph-isomorphism.sh build'
             }
         }
     }
 
     post {
         always {
-            echo "post"
+            sh "docker system prune -f"
             cleanWs()
         }
     }

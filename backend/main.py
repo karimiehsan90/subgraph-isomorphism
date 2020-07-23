@@ -3,8 +3,11 @@ from flask_cors import CORS
 from scanner import Scanner
 from parser import Parser
 import json
+import os
 
 
+BIND_IP = os.getenv('BACKEND_BIND_IP', '0.0.0.0')
+PORT = int(os.getenv('BACKEND_PORT', '8000'))
 app = Flask(__name__)
 CORS(app)
 scanner = Scanner()
@@ -39,4 +42,4 @@ def run_query():
     return Response(json.dumps(result), mimetype='application/json')
 
 
-app.run('0.0.0.0', 8000)
+app.run(BIND_IP, PORT)
