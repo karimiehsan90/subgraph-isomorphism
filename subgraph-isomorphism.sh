@@ -17,14 +17,31 @@ setup-vm() {
   ./provisioning/vagrant/setup-vm.sh
 }
 
+run-playbook() {
+  inventory=${1:-local}
+  playbook=${2:-main}
+  ansible_args=("")
+  if [ $# -gt 2 ]; then
+    ansible_args=("${@:3}")
+  fi
+  docker run -i \
+    --net host \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    --rm \
+    subgraph-isomorphism/provisioning \
+      "${inventory}" \
+      "${playbook}" \
+      "${ansible_args[@]}"
+}
+
 parse-args() {
   METHOD=${1}
-  shift
 }
 
 main() {
   parse-args "${@}"
-  ${METHOD}
+  shift
+  ${METHOD} "${@}"
 }
 
 main "${@}"
