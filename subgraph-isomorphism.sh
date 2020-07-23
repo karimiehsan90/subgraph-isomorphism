@@ -13,6 +13,10 @@ build() {
   done
 }
 
+setup-vm() {
+  ./provisioning/vagrant/setup-vm.sh
+}
+
 parse-args() {
   METHOD=${1}
   shift
