@@ -1,1 +1,1 @@
-declare -a DOCKERIZE_MODULES=("backend" "frontend")
+declare -a DOCKERIZE_MODULES=("backend" "frontend" "provisioning")
