@@ -1,0 +1,3 @@
+---
+hadoop_put_hdfs_path: "{{ hadoop_put_hdfs_dest_dir }}/{{ hadoop_put_file_name }}"
+hadoop_put_local_path: "{{ hadoop_put_local_dest_dir }}/{{ hadoop_put_file_name }}"

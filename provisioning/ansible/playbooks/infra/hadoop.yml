@@ -3,3 +3,8 @@
   hosts: hadoop
   roles:
     - hadoop
+
+- hosts: hadoop_masters
+  run_once: true
+  roles:
+    - hadoop-put

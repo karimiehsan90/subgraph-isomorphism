@@ -1,0 +1,9 @@
+---
+- name: Check required variables
+  assert:
+    that:
+      - hadoop_put_file_name | mandatory
+      - hadoop_put_file_url | mandatory
+      - hadoop_put_hdfs_dest_dir | mandatory
+      - hadoop_put_local_dest_dir | mandatory
+      - hadoop_put_hadoop_path | mandatory

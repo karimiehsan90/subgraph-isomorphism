@@ -1,0 +1,14 @@
+---
+- name: Download file
+  become: true
+  get_url:
+    url: "{{ hadoop_put_file_url }}"
+    dest: "{{ hadoop_put_local_dest_dir }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Ensure directory exists in hdfs
+  command: "{{ hadoop_put_hadoop_path }}/bin/hadoop fs -mkdir -p {{ hadoop_put_hdfs_dest_dir }}"
+
+- name: Put the file to hdfs
+  command: "{{ hadoop_put_hadoop_path }}/bin/hadoop fs -put {{ hadoop_put_local_path }} {{ hadoop_put_hdfs_path }}"

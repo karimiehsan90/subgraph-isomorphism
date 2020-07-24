@@ -16,3 +16,11 @@ hadoop:
     hadoop_slaves: "{{ groups['hadoop_slaves'] }}"
     hadoop_jdk_path: /opt/jdk
     hadoop_first_run: true
+
+hadoop_masters:
+  vars:
+    hadoop_put_file_name: sample-graph
+    hadoop_put_file_url: "http://main:8080/{{ hadoop_put_file_name }}"
+    hadoop_put_hdfs_dest_dir: /subgraph-isomorphism/input
+    hadoop_put_local_dest_dir: /opt
+    hadoop_put_hadoop_path: "{{ hadoop_path }}"
