@@ -1,0 +1,6 @@
+---
+hadoop_put_file_name:
+hadoop_put_file_url:
+hadoop_put_hdfs_dest_dir:
+hadoop_put_local_dest_dir:
+hadoop_put_hadoop_path:
