@@ -39,6 +39,12 @@ public class NodeMapReducer extends Reducer<Text, Text, Text, Text> {
 
     @Override
     protected void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+        if (key.toString().contains("here")) {
+            for (Text value : values) {
+                context.write(key, value);
+            }
+            return;
+        }
         List<String> mappedNodesListAsString = new ArrayList<>();
         for (Text value : values) {
             mappedNodesListAsString.add(value.toString());
@@ -52,44 +58,56 @@ public class NodeMapReducer extends Reducer<Text, Text, Text, Text> {
                 .collect(Collectors.toList());
         String keyString = key.toString();
         MappedNodes baseMappedNodes = getBase(mappedNodesList);
-        if (baseMappedNodes != null) {
-            for (MappedNodes completeResult : completeResults) {
-                Node latestMappedNodeInQueryGraph = getNodeByLabel(completeResult.getLatestQueryGraphMappedNode());
-                if (latestMappedNodeInQueryGraph != null
-                        && isValidMapped(baseMappedNodes, completeResult, latestMappedNodeInQueryGraph)) {
-                    context.write(key, completeResult.toText());
-                }
-            }
+        if (baseMappedNodes == null) {
+            baseMappedNodes = new MappedNodes(true);
+        }
+        else {
             context.write(key, baseMappedNodes.toText());
-            if (mappedNodesList.size() == 1) {
-                String firstNodeLabel = queryGraph.getNodes().get(0).getName();
-                MappedNodes copyMappedNodes = new MappedNodes(baseMappedNodes, firstNodeLabel);
-                copyMappedNodes.addPair(firstNodeLabel, keyString);
-                for (String child : baseMappedNodes.getChildren()) {
-                    context.write(new Text(child), copyMappedNodes.toText());
-                }
-            } else {
-                for (MappedNodes mappedNodes : mappedNodesList) {
-                    if (!mappedNodes.isBase()) {
-                        if (!mappedNodes.getMap().containsValue(keyString)) {
-                            String latestQueryGraphMappedNodeLabel = mappedNodes.getLatestQueryGraphMappedNode();
-                            Node latestQueryGraphMappedNode = getNodeByLabel(latestQueryGraphMappedNodeLabel);
-                            if (latestQueryGraphMappedNode != null && hasUnmappedChild(latestQueryGraphMappedNode, mappedNodes)) {
-                                for (Node node : latestQueryGraphMappedNode.getAdjList()) {
-                                    if (!mappedNodes.getMap().containsKey(node.getName())) {
-                                        MappedNodes copyMappedNodes = new MappedNodes(mappedNodes, node.getName());
-                                        copyMappedNodes.addPair(node.getName(), keyString);
+        }
+
+        for (MappedNodes completeResult : completeResults) {
+            Node latestMappedNodeInQueryGraph = getNodeByLabel(completeResult.getLatestQueryGraphMappedNode());
+            if (latestMappedNodeInQueryGraph != null
+                    && isValidMapped(baseMappedNodes, completeResult, latestMappedNodeInQueryGraph)) {
+                completeResult.setValidated(true);
+                context.write(key, completeResult.toText());
+            }
+        }
+        if (mappedNodesList.size() == 1 && mappedNodesList.get(0).isBase()) {
+            String firstNodeLabel = queryGraph.getNodes().get(0).getName();
+            MappedNodes copyMappedNodes = new MappedNodes(baseMappedNodes, firstNodeLabel);
+            copyMappedNodes.addPair(firstNodeLabel, keyString);
+            for (String child : baseMappedNodes.getChildren()) {
+                context.write(new Text(child), copyMappedNodes.toText());
+            }
+        } else {
+            for (MappedNodes mappedNodes : mappedNodesList) {
+                if (!mappedNodes.isBase()) {
+                    if (!mappedNodes.getMap().containsValue(keyString)) {
+                        String latestQueryGraphMappedNodeLabel = mappedNodes.getLatestQueryGraphMappedNode();
+                        Node latestQueryGraphMappedNode = getNodeByLabel(latestQueryGraphMappedNodeLabel);
+                        if (latestQueryGraphMappedNode != null && hasUnmappedChild(latestQueryGraphMappedNode, mappedNodes)) {
+                            for (Node node : latestQueryGraphMappedNode.getAdjList()) {
+                                if (!mappedNodes.getMap().containsKey(node.getName())) {
+                                    MappedNodes copyMappedNodes = new MappedNodes(mappedNodes, node.getName());
+                                    copyMappedNodes.addPair(node.getName(), keyString);
+                                    if (isValidMapped(baseMappedNodes, copyMappedNodes, node)) {
                                         Text copyMappedNodesText = copyMappedNodes.toText();
-                                        if (isValidMapped(baseMappedNodes, copyMappedNodes, node)) {
-                                            for (String child : baseMappedNodes.getChildren()) {
-                                                context.write(new Text(child), copyMappedNodesText);
-                                            }
+                                        for (String child : baseMappedNodes.getChildren()) {
+                                            context.write(new Text(child), copyMappedNodesText);
+                                        }
+                                        if (baseMappedNodes.getChildren().isEmpty()) {
+                                            context.write(new Text(keyString), copyMappedNodesText);
                                         }
                                     }
                                 }
-                            } else if (latestQueryGraphMappedNode != null) {
-                                backtrack(mappedNodes, context);
                             }
+                        } else if (latestQueryGraphMappedNode != null) {
+                            backtrack(mappedNodes, context);
+                        }
+                    } else {
+                        if (baseMappedNodes.getChildren().isEmpty()) {
+                            backtrack(mappedNodes, context);
                         } else {
                             String nodeInQueryGraph = getMappedKey(mappedNodes, keyString);
                             mappedNodes.setLatestQueryGraphMappedNode(nodeInQueryGraph);
@@ -100,31 +118,6 @@ public class NodeMapReducer extends Reducer<Text, Text, Text, Text> {
                             }
                         }
                     }
-                }
-            }
-        } else {
-            for (MappedNodes completeResult : completeResults) {
-                Node latestMappedNodeInQueryGraph = getNodeByLabel(completeResult.getLatestQueryGraphMappedNode());
-                if (latestMappedNodeInQueryGraph != null
-                        && isValidMapped(new MappedNodes(true), completeResult, latestMappedNodeInQueryGraph)) {
-                    context.write(key, completeResult.toText());
-                }
-            }
-            for (MappedNodes mappedNodes : mappedNodesList) {
-                if (!mappedNodes.getMap().containsValue(keyString)) {
-                    String latestQueryGraphMappedNodeLabel = mappedNodes.getLatestQueryGraphMappedNode();
-                    Node latestQueryGraphMappedNode = getNodeByLabel(latestQueryGraphMappedNodeLabel);
-                    if (latestQueryGraphMappedNode != null) {
-                        for (Node node : latestQueryGraphMappedNode.getAdjList()) {
-                            MappedNodes copyMappedNodes = new MappedNodes(mappedNodes, node.getName());
-                            copyMappedNodes.addPair(node.getName(), keyString);
-                            if (isValidMapped(new MappedNodes(true), copyMappedNodes, node)) {
-                                context.write(new Text(keyString), copyMappedNodes.toText());
-                            }
-                        }
-                    }
-                } else {
-                    backtrack(mappedNodes, context);
                 }
             }
         }
@@ -140,14 +133,10 @@ public class NodeMapReducer extends Reducer<Text, Text, Text, Text> {
     }
 
     private void backtrack(MappedNodes mappedNodes, Context context) throws IOException, InterruptedException {
-        String latestQueryGraphMappedNodeLabel = mappedNodes.getLatestQueryGraphMappedNode();
-        Node latestQueryGraphMappedNode = getNodeByLabel(latestQueryGraphMappedNodeLabel);
-        if (latestQueryGraphMappedNode != null && latestQueryGraphMappedNode.getAdjList().size() == 0) {
-            for (String nodeLabel : mappedNodes.getMap().keySet()) {
-                Node nodeByLabel = getNodeByLabel(nodeLabel);
-                if (nodeByLabel != null && hasUnmappedChild(nodeByLabel, mappedNodes)) {
-                    context.write(new Text(mappedNodes.getMap().get(nodeLabel)), mappedNodes.toText());
-                }
+        for (String nodeLabel : mappedNodes.getMap().keySet()) {
+            Node nodeByLabel = getNodeByLabel(nodeLabel);
+            if (nodeByLabel != null && hasUnmappedChild(nodeByLabel, mappedNodes)) {
+                context.write(new Text(mappedNodes.getMap().get(nodeLabel)), mappedNodes.toText());
             }
         }
     }

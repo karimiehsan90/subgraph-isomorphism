@@ -3,11 +3,11 @@ package ir.ac.sbu.project.entity;
 import org.apache.hadoop.io.Text;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class MappedNodes {
     private Map<String, String> map;
     private boolean isBase;
+    private boolean isValidated;
     private List<String> children;
     private String latestQueryGraphMappedNode = "$";
 
@@ -36,6 +36,14 @@ public class MappedNodes {
 
     public Map<String, String> getMap() {
         return map;
+    }
+
+    public boolean isValidated() {
+        return isValidated;
+    }
+
+    public void setValidated(boolean validated) {
+        isValidated = validated;
     }
 
     public void setLatestQueryGraphMappedNode(String latestQueryGraphMappedNode) {
@@ -75,16 +83,17 @@ public class MappedNodes {
         String[] objectFields = objectAsString.split(" ");
         mappedNodes.isBase = Boolean.parseBoolean(objectFields[0]);
         mappedNodes.latestQueryGraphMappedNode = objectFields[1];
+        mappedNodes.isValidated = Boolean.parseBoolean(objectFields[2]);
         if (!mappedNodes.isBase) {
             Arrays.asList(objectFields)
-                    .subList(2, objectFields.length)
+                    .subList(3, objectFields.length)
                     .forEach(field -> {
                         String[] keyValue = field.split(":");
                         mappedNodes.map.put(keyValue[0], keyValue[1]);
                     });
         } else {
             mappedNodes.children.addAll(Arrays.asList(objectFields)
-                    .subList(2, objectFields.length));
+                    .subList(3, objectFields.length));
         }
         return mappedNodes;
     }
@@ -109,7 +118,9 @@ public class MappedNodes {
         StringBuilder stringBuilder = new StringBuilder("");
         stringBuilder.append(isBase)
                 .append(" ")
-                .append(latestQueryGraphMappedNode);
+                .append(latestQueryGraphMappedNode)
+                .append(" ")
+                .append(isValidated);
         if (!isBase) {
             for (String key : map.keySet()) {
                 stringBuilder.append(" ")
