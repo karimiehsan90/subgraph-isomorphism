@@ -8,6 +8,7 @@ public class MappedNodes {
     private Map<String, String> map;
     private boolean isBase;
     private boolean isValidated;
+    private int checkedUntil = 0;
     private List<String> children;
     private String latestQueryGraphMappedNode = "$";
 
@@ -32,6 +33,14 @@ public class MappedNodes {
         }
 
         this.latestQueryGraphMappedNode = latestQueryGraphMappedNode;
+    }
+
+    public int getCheckedUntil() {
+        return checkedUntil;
+    }
+
+    public void setCheckedUntil(int checkedUntil) {
+        this.checkedUntil = checkedUntil;
     }
 
     public Map<String, String> getMap() {
@@ -84,16 +93,17 @@ public class MappedNodes {
         mappedNodes.isBase = Boolean.parseBoolean(objectFields[0]);
         mappedNodes.latestQueryGraphMappedNode = objectFields[1];
         mappedNodes.isValidated = Boolean.parseBoolean(objectFields[2]);
+        mappedNodes.checkedUntil = Integer.parseInt(objectFields[3]);
         if (!mappedNodes.isBase) {
             Arrays.asList(objectFields)
-                    .subList(3, objectFields.length)
+                    .subList(4, objectFields.length)
                     .forEach(field -> {
                         String[] keyValue = field.split(":");
                         mappedNodes.map.put(keyValue[0], keyValue[1]);
                     });
         } else {
             mappedNodes.children.addAll(Arrays.asList(objectFields)
-                    .subList(3, objectFields.length));
+                    .subList(4, objectFields.length));
         }
         return mappedNodes;
     }
@@ -113,6 +123,20 @@ public class MappedNodes {
         return new Text(toKeyString());
     }
 
+    private String toResultString() {
+        String[] values = new String[map.size()];
+        int i = 0;
+        for (String key : map.keySet()) {
+            values[i] = key + ":" + map.get(key);
+            i++;
+        }
+        return String.join(" ", values);
+    }
+
+    public Text toResultText() {
+        return new Text(toResultString());
+    }
+
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder("");
@@ -120,7 +144,9 @@ public class MappedNodes {
                 .append(" ")
                 .append(latestQueryGraphMappedNode)
                 .append(" ")
-                .append(isValidated);
+                .append(isValidated)
+                .append(" ")
+                .append(checkedUntil);
         if (!isBase) {
             for (String key : map.keySet()) {
                 stringBuilder.append(" ")
