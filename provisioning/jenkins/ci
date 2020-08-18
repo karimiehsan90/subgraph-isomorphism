@@ -13,12 +13,6 @@ pipeline {
                 sh './subgraph-isomorphism.sh build'
             }
         }
-
-        stage('Deploy MapReduce') {
-            steps {
-                sh './subgraph-isomorphism.sh deploy'
-            }
-        }
     }
 
     post {
