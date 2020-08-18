@@ -6,8 +6,10 @@ class Graph:
         for i in range(len(row) - 1):
             if not row[i + 1] in self.nodes[row[i]]:
                 self.nodes[row[i]].append(row[i + 1])
-            if not row[i] in self.nodes[row[i + 1]]:
-                self.nodes[row[i + 1]].append(row[i])
+
+    def add_single_edge(self, from_node, to_node):
+        if not to_node in self.nodes[from_node]:
+            self.nodes[from_node].append(to_node)
 
     def add_node(self, node):
         if node not in self.nodes.keys():

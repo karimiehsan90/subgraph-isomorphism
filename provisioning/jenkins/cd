@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Deploy') {
             steps {
-                echo 'deploy'
+                sh "./subgraph-isomorphism.sh deploy"
             }
         }
     }

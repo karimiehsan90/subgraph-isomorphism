@@ -20,18 +20,7 @@ build() {
 
 deploy() {
   scp map-reduce/target/map-reduce-1.0-SNAPSHOT-jar-with-dependencies.jar admin@195.248.242.194:subgraph-isomorphism.jar
-  ssh admin@195.248.242.194 "
-    set -o errexit
-    /opt/hadoop/bin/hadoop fs -rm -r /subgraph-isomorphism/tmp || true
-    /opt/hadoop/bin/hadoop fs -rm -r /subgraph-isomorphism/output || true
-    /opt/hadoop/bin/hadoop jar subgraph-isomorphism.jar ir.ac.sbu.project.App \
-      /subgraph-isomorphism/input \
-      /subgraph-isomorphism/query \
-      /subgraph-isomorphism/tmp \
-      /subgraph-isomorphism/output \
-      10
-    /opt/hadoop/bin/hadoop fs -cat /subgraph-isomorphism/output/part-r-00000
-  "
+
 }
 
 setup-vm() {
