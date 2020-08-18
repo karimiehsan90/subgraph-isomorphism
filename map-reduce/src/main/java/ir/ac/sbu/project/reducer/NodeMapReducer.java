@@ -66,11 +66,22 @@ public class NodeMapReducer extends Reducer<Text, Text, Text, Text> {
         }
 
         for (MappedNodes completeResult : completeResults) {
-            Node latestMappedNodeInQueryGraph = getNodeByLabel(completeResult.getLatestQueryGraphMappedNode());
-            if (latestMappedNodeInQueryGraph != null
-                    && isValidMapped(baseMappedNodes, completeResult, latestMappedNodeInQueryGraph)) {
+            int checkedUntil = completeResult.getCheckedUntil();
+            if (checkedUntil == queryGraph.getNodes().size()) {
                 completeResult.setValidated(true);
                 context.write(key, completeResult.toText());
+            } else {
+                Node checkedUntilQueryNode = queryGraph.getNodes().get(checkedUntil);
+                String checkedUntilQueryNodeLabel = checkedUntilQueryNode.getName();
+                String checkedUntilDataNode = completeResult.getMap().get(checkedUntilQueryNodeLabel);
+                if (keyString.equals(checkedUntilDataNode)) {
+                    if (isValidMapped(baseMappedNodes, completeResult, checkedUntilQueryNode)) {
+                        completeResult.setCheckedUntil(checkedUntil + 1);
+                        context.write(key, completeResult.toText());
+                    }
+                } else {
+                    context.write(new Text(checkedUntilDataNode), completeResult.toText());
+                }
             }
         }
         if (mappedNodesList.size() == 1 && mappedNodesList.get(0).isBase()) {
